@@ -1,14 +1,27 @@
 pipeline {
-    agent {
-        node {
-            label 'maven'
-        }
-    }
+    agent none
     environment {
         PATH = "/opt/apache-maven-3.9.4/bin:$PATH"
     }
     stages {
-        stage("build") {
+        stage("Prepare Environment") {
+            agent {
+                docker {
+                    image 'openjdk:8' // Specify the base image
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
+            steps {
+                sh 'echo "Preparing environment"'
+                sh 'docker info'
+            }
+        }
+        stage("Build") {
+            agent {
+                node {
+                    label 'maven'
+                }
+            }
             steps {
                 echo "------------------ build started -----------------"
                 sh 'mvn clean deploy -Dmaven.test.skip=true'
@@ -16,7 +29,7 @@ pipeline {
             }
         }
         
-        stage("test") {
+        stage("Test") {
             steps {
                 echo "------------------ unit test started -----------------"
                 sh 'mvn surefire-report:report'
@@ -24,7 +37,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube analysis') {
+        stage('SonarQube Analysis') {
             environment {
                 scannerHome = tool 'galaxy-sonar-scanner'
             }
