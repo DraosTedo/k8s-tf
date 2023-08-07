@@ -101,4 +101,3 @@ resource "aws_route_table_association" "demo-rta-public-subnet-02" {
   route_table_id = aws_route_table.demo-public-rt.id
   
 }
-
